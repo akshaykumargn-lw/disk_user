@@ -185,7 +185,7 @@ df2 = df2.sort_values(by='Size', ascending=False)
 df3 = convert_size_column(df2)
 
 # Create a Pandas Excel writer object for saving the updated data
-updated_excel_filename = f'Evaluated_Files:{selected_file_type}, Search_folder:{folder_key}, Filter_size={size_value}{size_unit}.xlsx'
+updated_excel_filename = f'Evaluated_Files={selected_file_type},Search_Folder={folder_key},Filter_Size={size_value}{size_unit}.xlsx'
 
 with pd.ExcelWriter(updated_excel_filename, engine='openpyxl') as writer:
     df3.to_excel(writer, sheet_name='All Users', index=False)
