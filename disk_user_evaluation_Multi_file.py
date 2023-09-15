@@ -40,7 +40,7 @@ while True:
             for key, value in folder_locations.items():
                 print(f"{key}: {value}")
     
-            folder_choice = input("Enter the number of your choice or enter 'Stop' to generate Excel: ")
+            folder_choice = input("Enter the number of your choice or enter 'Stop' to finsh process: ")
             
             if folder_choice.lower() == 'stop':
                 return None, ''  # Return None for both values when the user enters 'stop'
@@ -204,7 +204,7 @@ df2 = df2.sort_values(by='Size', ascending=False)
 df3 = convert_size_column(df2)
 
 # Create a Pandas Excel writer object for saving the updated data
-updated_excel_filename = f'Evaluated_Files:{file_ext} folders:{final_key} filter size:{size_value}{size_unit}.xlsx'
+updated_excel_filename = f'Evaluated_Files:{file_ext} Search_folders:{final_key} Filter_size:{size_value}{size_unit}.xlsx'
 
 with pd.ExcelWriter(updated_excel_filename, engine='openpyxl') as writer:
     df3.to_excel(writer, sheet_name='All Users', index=False)
