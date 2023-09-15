@@ -28,6 +28,8 @@ result_df = pd.DataFrame(columns=["File Name", "Author", "Size", "File Path"])
 
 # Initalizing an empty data frame to store generated file extension
 file_ext = ""
+# Initalizing an empty data frame to store generated folder key
+final_key = ""
 
 while True:
     # Ask the user to choose a folder location
@@ -38,7 +40,7 @@ while True:
             for key, value in folder_locations.items():
                 print(f"{key}: {value}")
     
-            folder_choice = input("Enter the number of your choice or enter 'Stop': ")
+            folder_choice = input("Enter the number of your choice or enter 'Stop' to generate Excel: ")
             
             if folder_choice.lower() == 'stop':
                 return None, ''  # Return None for both values when the user enters 'stop'
@@ -56,7 +58,7 @@ while True:
             else:
                 print("Invalid choice. Please try again.")
 
-    selected_folder, folder_key = get_valid_folder_choice()   
+    selected_folder, folder_choice = get_valid_folder_choice()   
     
     if selected_folder is None:
         break  # User entered 'stop', so exit the loop
@@ -87,7 +89,7 @@ while True:
             
     selected_file_type = get_valid_file_type_choice()
     file_ext += selected_file_type # Append the selected file type to the list
-    
+    final_key += str(folder_choice)
     # Create a list to store the matching file paths
     matching_files = []
     
@@ -202,7 +204,7 @@ df2 = df2.sort_values(by='Size', ascending=False)
 df3 = convert_size_column(df2)
 
 # Create a Pandas Excel writer object for saving the updated data
-updated_excel_filename = f'Evaluated_Multi_Files_{file_ext}_{folder_key}max_size={size_value}{size_unit}.xlsx'
+updated_excel_filename = f'Evaluated_Multi_Files_{file_ext}_{final_key}_filter_size={size_value}{size_unit}.xlsx'
 
 with pd.ExcelWriter(updated_excel_filename, engine='openpyxl') as writer:
     df3.to_excel(writer, sheet_name='All Users', index=False)
