@@ -88,8 +88,8 @@ while True:
                 print("Invalid choice. Please try again.")
             
     selected_file_type = get_valid_file_type_choice()
-    file_ext += selected_file_type # Append the selected file type to the list
-    final_key += str(folder_choice)
+    file_ext += str(selected_file_type) + "," # Append the selected file type to the list
+    final_key += str(folder_choice) + ","
     # Create a list to store the matching file paths
     matching_files = []
     
@@ -204,7 +204,7 @@ df2 = df2.sort_values(by='Size', ascending=False)
 df3 = convert_size_column(df2)
 
 # Create a Pandas Excel writer object for saving the updated data
-updated_excel_filename = f'Evaluated_Multi_Files_{file_ext}_{final_key}_filter_size={size_value}{size_unit}.xlsx'
+updated_excel_filename = f'Evaluated_Files:{file_ext} folders:{final_key} filter size:{size_value}{size_unit}.xlsx'
 
 with pd.ExcelWriter(updated_excel_filename, engine='openpyxl') as writer:
     df3.to_excel(writer, sheet_name='All Users', index=False)
