@@ -17,3 +17,7 @@ To use the Disk User Information Evaluation Script, follow these steps:
 3. Run the script, which will scan the system's disk, collect data, and generate Excel files with segregated user information.
 
 4. Open the generated Excel files for further analysis.
+
+**Make sure to install required libraries by using the below command:
+"pip install -r requirements.txt"
+
