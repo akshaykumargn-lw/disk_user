@@ -1,3 +1,6 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+# Install required libraries:
 import os
 import glob
 import openpyxl
@@ -7,6 +10,57 @@ import re
 from pathlib import Path
 from openpyxl.styles import Font
 
+# Pre-defined file types to choose from
+file_types = {
+    0: "Input extensions from a text file",
+    1: "*.odb",
+    2: "*.bof",
+    3: "*.xlsx",
+    4: ".pdf"
+}
+
+# Ask the user to choose a file type
+def get_valid_file_type_choice():
+    while True:
+        # Ask the user to choose a file type
+        print("Choose file types:")
+        for key, value in file_types.items():
+            print(f"{key}: {value}")
+
+        file_types_choice = input("Enter the number of your choice (or multiple choices separated by commas): ")
+        
+        try:
+            file_types_choices = [int(choice) for choice in file_types_choice.split(",")]
+        except ValueError:
+                print("Invalid choice. Please enter valid numbers separated by commas.")
+                continue
+        
+        if 0 in file_types_choices:
+            # User chose to input file with multiple extensions
+            extensions_file = input("Enter the file name (Note: File should have one extension per line): ")
+            # Read file extensions from the extension list file
+            try:
+                with open(extensions_file, 'r') as f:
+                    extensions_list = [line.strip() for line in f]
+                    if all(ext.startswith("*.") for ext in extensions_list):
+                        return extensions_list
+                    else:
+                        print("Invalid input. Each line in the file should start with '*.ext'.")
+            except FileNotFoundError:
+                print("File not found. Please enter a valid file name.")
+            continue
+        
+        # Check if each choice is a valid key in the file_types dictionary
+        for choice in file_types_choices:
+            if choice not in file_types:
+                print(f"Invalid choice '{choice}'. Please enter a valid number.")
+                break
+        else:
+            selected_file_types = [file_types.get(choice) for choice in file_types_choices]
+            return selected_file_types
+
+chosen_file_types = get_valid_file_type_choice()
+            
 # Define the pre-existing folder locations as a dictionary
 folder_locations = {
     1: "/CAE/01_Daimler-Truck",
@@ -16,138 +70,98 @@ folder_locations = {
     5: "/CAE"
 }
 
-# Define the pre-defined file types to choose from
-file_types = {
-    1: "*.odb",
-    2: "*.bof",
-    3: "*.pdf"
-}
+# Ask the user to choose a folder location
+def get_valid_folder_choice():
+    while True:
+        # Ask the user to choose a folder location
+        print("Choose a folder location:")
+        for key, value in folder_locations.items():
+            print(f"{key}: {value}")
 
-# Initialize an empty DataFrame to store the results
-result_df = pd.DataFrame(columns=["File Name", "Author", "Size", "File Path"])
-
-# Initalizing an empty data frame to store generated file extension
-file_ext = ""
-# Initalizing an empty data frame to store generated folder key
-final_key = ""
-
-while True:
-    # Ask the user to choose a folder location
-    def get_valid_folder_choice():
-        while True:
-            # Ask the user to choose a folder location
-            print("Choose a folder location:")
-            for key, value in folder_locations.items():
-                print(f"{key}: {value}")
-    
-            folder_choice = input("Enter the number of your choice or enter 'Stop' to finsh process: ")
-            
-            if folder_choice.lower() == 'stop':
-                return None, ''  # Return None for both values when the user enters 'stop'
-                
-            try:
-                folder_choice = int(folder_choice)  # Convert the input to an integer
-            except ValueError:
-                print("Invalid choice. Please enter a valid number.")
-                continue
-            
-            selected_folder = folder_locations.get(folder_choice)
-            
-            if selected_folder:
-                return selected_folder, folder_choice
-            else:
-                print("Invalid choice. Please try again.")
-
-    selected_folder, folder_choice = get_valid_folder_choice()   
-    
-    if selected_folder is None:
-        break  # User entered 'stop', so exit the loop
-              
-    # Ask the user to choose a file type
-    def get_valid_file_type_choice():
-        while True:
-            # Ask the user to choose a file type
-            print("Choose a file type:")
-            for key, value in file_types.items():
-                print(f"{key}: {value}")
-    
-            file_type_choice = input("Enter the number of your choice: ")
-            
-            try:
-                file_type_choice = int(file_type_choice)  # Convert the input to an integer
-            except ValueError:
-                print("Invalid choice. Please enter a valid number.")
-                continue
-            
-            selected_file_type = file_types.get(file_type_choice)
-    
-            if selected_file_type:
-                return selected_file_type
-                
-            else:
-                print("Invalid choice. Please try again.")
-            
-    selected_file_type = get_valid_file_type_choice()
-    file_ext += str(selected_file_type) + "," # Append the selected file type to the list
-    final_key += str(folder_choice) + ","
-    # Create a list to store the matching file paths
-    matching_files = []
-    
-    # Use pathlib to search for matching files
-    folder_path = Path(selected_folder)
-    matching_files = folder_path.glob('**/' + selected_file_type)
-    
-    # Function to get file author
-    def get_file_author(file_path):
-        try:
-            # Use a platform-specific method to get file author (example for Linux)
-            author = os.popen(f"stat -c '%U' '{file_path}'").read().strip()
-            return author
-        except:
-            return "N/A"
-    
-    # Function to get file size
-    def get_file_size(file_path):
-        try:
-            # Check if the file exists
-            if not os.path.exists(file_path):
-               return f'File not found- {file_path}' # Zero file size is assigned for invalid file types
-            size = os.path.getsize(file_path)
-            return size
-        except Exception as e:
-            print(f"Error getting file size: {e}")
-            return "N/A"
-    
-    # Create a list to store the file information
-    file_info = []
-    
-    # Extract and store file information in the file_info list
-    for file_path in matching_files:
-        file_name = file_path.name
-        file_author = get_file_author(file_path)
-        file_size = get_file_size(file_path)
+        folder_choice = input("Enter the number of your choice or enter 'Stop' to finsh process: ")
         
-        file_info.append((file_name, file_author, file_size, str(file_path)))
-     
-        # Create a Pandas DataFrame from the file_info list
-    df0 = pd.DataFrame(file_info, columns=["File Name", "Author", "Size", "File Path"])
+        if folder_choice.lower() == 'stop':
+            return None, ''  # Return None for both values when the user enters 'stop'
+            
+        try:
+            folder_choice = int(folder_choice)  # Convert the input to an integer
+        except ValueError:
+            print("Invalid choice. Please enter a valid number.")
+            continue
+        
+        selected_folder = folder_locations.get(folder_choice)
+        
+        if selected_folder:
+            return selected_folder, folder_choice
+        else:
+            print("Invalid choice. Please try again.")
+
+selected_folder, folder_choice = get_valid_folder_choice()   
+
+# Convert the list to a comma-separated string
+file_ext_str = ",".join(chosen_file_types)
+
+# Create a list to store the matching file paths
+matching_files = []
+
+# Use pathlib to search for matching files
+folder_path = Path(selected_folder)
+
+for extension in chosen_file_types:
+    matching_files.extend(folder_path.glob('**/' + extension))
+
+# Function to get file author
+def get_file_author(file_path):
+    try:
+        # Use a platform-specific method to get file author (example for Linux)
+        author = os.popen(f"stat -c '%U' '{file_path}'").read().strip()
+        return author
+    except:
+        return "N/A"
+
+# Function to get file size
+def get_file_size(file_path):
+    try:
+        # Check if the file exists
+        if not os.path.exists(file_path):
+           return f'File not found- {file_path}' # Zero file size is assigned for invalid file types
+        size = os.path.getsize(file_path)
+        return size
+    except Exception as e:
+        print(f"Error getting file size: {e}")
+        return "N/A"
+
+# Create a list to store the file information
+file_info = []
+
+# Extract and store file information in the file_info list
+for file_path in matching_files:
+    file_name = file_path.name
+    file_author = get_file_author(file_path)
+    file_size = get_file_size(file_path)
+
+    # Encode the file path to UTF-8 to handle non-UTF-8 characters
+    utf8_file_path = str(file_path).encode('utf-8', 'ignore').decode('utf-8')
     
-    # Concatenate the current DataFrame with the result_df
-    result_df = pd.concat([result_df, df0], ignore_index=True)
+    file_info.append((file_name, file_author, file_size, utf8_file_path))
+ 
+    # Create a Pandas DataFrame from the file_info list
+df0 = pd.DataFrame(file_info, columns=["File Name", "Author", "Size", "File Path"])
+
 
 # Save the Excel file with both selected file type and selected folder in the filename
-file_ext = file_ext.replace("*", "")  # Remove asterisk from the file type
+file_ext_str = file_ext_str.replace("*", "")  # Remove asterisk from the file type
  
 print(f"Found {len(file_info)} matching files.")
 
 # Function to clean and convert the string in 'Size' column
 def process_size_column(df):
-    for index, row in result_df.iterrows():
+    for index, row in df0.iterrows():
         size_value = row['Size']
         if isinstance(size_value, str):
             print(f"Found a string value in row {index}: {size_value}")
-            result_df.at[index, 'Size'] = 0
-    return result_df
+            df0.at[index, 'Size'] = 0
+    return df0
 
 # Define a dictionary to map unit abbreviations to multipliers (e.g., KB to 1024)
 unit_multipliers = {
@@ -179,9 +193,9 @@ while True:
     else:
         print("Invalid input format. Please use the format: 100B, 1KB, 10MB, etc.")
         
-df2 = process_size_column(result_df)
+df1 = process_size_column(df0)
 
-df2 = df2[df2['Size'] >= size_limit]  # Filter based on the numeric 'Size'
+df2 = df1[df1['Size'] >= size_limit]  # Filter based on the numeric 'Size'
 
 def convert_size_column(dataframe):
     for index, row in dataframe.iterrows():
@@ -203,14 +217,28 @@ df2 = df2.sort_values(by='Size', ascending=False)
 # Convert the 'Size' column
 df3 = convert_size_column(df2)
 
+# Function to replace non-UTF-8 characters with '?'
+def replace_non_utf8_characters(text):
+    try:
+        text.encode('utf-8', errors='surrogatepass').decode('utf-8')
+        return text  # Text is already valid UTF-8
+    except UnicodeDecodeError:
+        return '?'  # Replace non-UTF-8 characters with '?'
+    
+# Create a new DataFrame with replaced characters
+df4 = df3.applymap(replace_non_utf8_characters)
+
+# Information about replaced characters
+replaced_info = (df3 != df4)
+
 # Create a Pandas Excel writer object for saving the updated data
-updated_excel_filename = f'Evaluated_Files={file_ext},Search_Folders={final_key},Filter_Size={size_value}{size_unit}.xlsx'
+updated_excel_filename = f'Evaluated_Files={file_ext_str},Search_Folders={folder_choice},Filter_Size={size_value}{size_unit}.xlsx'
 
 with pd.ExcelWriter(updated_excel_filename, engine='openpyxl') as writer:
-    df3.to_excel(writer, sheet_name='All Users', index=False)
+    df4.to_excel(writer, sheet_name='All Users', index=False)
    
     # Group the data by author name and save each group to a separate sheet
-    grouped = df3.groupby('Author')
+    grouped = df4.groupby('Author')
     print(grouped)
     for author, group_data in grouped:
         sheet_name = f'{author}'

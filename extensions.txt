@@ -1,0 +1,4 @@
+*.bof
+*.odb
+*.pdf
+*.xlsx
