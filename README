@@ -1,6 +1,5 @@
-The script was written to evaluate disk user information and save it to the excel file. Each excel was created to save the data for different file extensions such as .odb, .bof and so on. Further the data was segregated based on user in different sheets of the excelcript was written to evaluate disk user information and save it to the exce
-l file. Each excel was created to save the data for different file extensions such as .odb, .bof and so on. Further the data was segregated based on user in different sheets of the excel file.
-file.
+The script was written to evaluate disk user information and save it to the excel file with information such as File name, Author, Size and Latest modified timesamp. Each excel was created to save the data for different file extensions such as .odb, .bof and so on. Further the data was segregated based on user in different sheets of the excel file in descending order of file size.
+
 This script serves the following main purposes:
 
 1. Data Collection: It scans the system's disk for files with specific extensions, extracts user-related information, and compiles this data for further analysis.
@@ -12,9 +11,9 @@ To use the Disk User Information Evaluation Script, follow these steps:
 
 1. Clone this repository to your local machine.
 
-2. Configure the script by specifying the file extensions you want to analyze.
+2. run the script in command line in the format "<disk_evaluation.py> <extensions.txt> <Search folderpath(Eg:/CAE)> <Filter size(Eg: 100KB, 10MB, 1GB>" 
 
-3. Run the script, which will scan the system's disk, collect data, and generate Excel files with segregated user information.
+3. Running the script, which will scan the system's disk, collect data, and generate Excel files with segregated user information.
 
 4. Open the generated Excel files for further analysis.
 

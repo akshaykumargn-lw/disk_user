@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-# Install required libraries:
+# Install required libraries from 'requirements' file:
 import os
 import glob
 import openpyxl
@@ -12,11 +12,11 @@ from openpyxl.styles import Font
 
 # Pre-defined file types to choose from
 file_types = {
-    0: "Input extensions from a text file",
+    0: "Input from 'extensions.txt' file",
     1: "*.odb",
     2: "*.bof",
     3: "*.xlsx",
-    4: ".pdf"
+    4: "*.pdf"
 }
 
 # Ask the user to choose a file type
@@ -36,13 +36,13 @@ def get_valid_file_type_choice():
                 continue
         
         if 0 in file_types_choices:
-            # User chose to input file with multiple extensions
-            extensions_file = input("Enter the file name (Note: File should have one extension per line): ")
+            extensions_file = './extensions.txt'
             # Read file extensions from the extension list file
             try:
                 with open(extensions_file, 'r') as f:
                     extensions_list = [line.strip() for line in f]
                     if all(ext.startswith("*.") for ext in extensions_list):
+                        print("Extensions read from file:", extensions_list)
                         return extensions_list
                     else:
                         print("Invalid input. Each line in the file should start with '*.ext'.")
@@ -63,11 +63,11 @@ chosen_file_types = get_valid_file_type_choice()
             
 # Define the pre-existing folder locations as a dictionary
 folder_locations = {
+    0:"/CAE",
     1: "/CAE/01_Daimler-Truck",
     2: "/CAE/02_Daimler_Van",
     3: "/CAE/03_Daimler-EvoBus",
-    4: "/CAE/30_Stihl",
-    5: "/CAE"
+    4: "/CAE/30_Stihl"
 }
 
 # Ask the user to choose a folder location
@@ -98,6 +98,36 @@ def get_valid_folder_choice():
 
 selected_folder, folder_choice = get_valid_folder_choice()   
 
+# Define a dictionary to map unit abbreviations to multipliers (e.g., KB to 1024)
+unit_multipliers = {
+    'B': 1,
+    'KB': 1024,
+    'MB': 1024 ** 2,
+    'GB': 1024 ** 3,
+    'TB': 1024 ** 4,
+}
+
+while True:
+    user_input = input("Enter the file size limit (e.g., 100B, 1KB, 10MB, 5GB): ").strip().upper()
+    
+    # Use regular expressions to parse the input for numeric value and unit
+    match = re.match(r'^(\d+)([A-Z]+)$', user_input)
+    
+    if match:
+        size_value, size_unit = match.groups()
+        try:
+            size_value = float(size_value)
+            size_multiplier = unit_multipliers.get(size_unit, None)
+            if size_multiplier:
+                size_limit = size_value * size_multiplier
+                break  # Exit the loop if the input is valid
+            else:
+                print("Invalid unit. Please use B, KB, MB, GB, or TB.")
+        except ValueError:
+            print("Invalid input. Please enter a valid number.")
+    else:
+        print("Invalid input format. Please use the format: 100B, 1KB, 10MB, etc.")
+        
 # Convert the list to a comma-separated string
 file_ext_str = ",".join(chosen_file_types)
 
@@ -162,37 +192,7 @@ def process_size_column(df):
             print(f"Found a string value in row {index}: {size_value}")
             df0.at[index, 'Size'] = 0
     return df0
-
-# Define a dictionary to map unit abbreviations to multipliers (e.g., KB to 1024)
-unit_multipliers = {
-    'B': 1,
-    'KB': 1024,
-    'MB': 1024 ** 2,
-    'GB': 1024 ** 3,
-    'TB': 1024 ** 4,
-}
-
-while True:
-    user_input = input("Enter the file size limit (e.g., 100B, 1KB, 10MB, 5GB): ").strip().upper()
-    
-    # Use regular expressions to parse the input for numeric value and unit
-    match = re.match(r'^(\d+)([A-Z]+)$', user_input)
-    
-    if match:
-        size_value, size_unit = match.groups()
-        try:
-            size_value = float(size_value)
-            size_multiplier = unit_multipliers.get(size_unit, None)
-            if size_multiplier:
-                size_limit = size_value * size_multiplier
-                break  # Exit the loop if the input is valid
-            else:
-                print("Invalid unit. Please use B, KB, MB, GB, or TB.")
-        except ValueError:
-            print("Invalid input. Please enter a valid number.")
-    else:
-        print("Invalid input format. Please use the format: 100B, 1KB, 10MB, etc.")
-        
+       
 df1 = process_size_column(df0)
 
 df2 = df1[df1['Size'] >= size_limit]  # Filter based on the numeric 'Size'
