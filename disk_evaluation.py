@@ -55,7 +55,8 @@ def main():
         print("File not found. Please enter a valid file name.")
     
 if __name__ == "__main__":
-    main()    
+    main()  
+    
 print("Process started. Please wait!!")
 # Define a dictionary to map unit abbreviations to multipliers (e.g., KB to 1024)
 unit_multipliers = {
@@ -129,10 +130,10 @@ for file_path in matching_files:
     # Encode the file path to UTF-8 to handle non-UTF-8 characters
     utf8_file_path = str(file_path).encode('utf-8', 'ignore').decode('utf-8')
     
-    file_info.append((file_name, file_author, file_size, utf8_file_path, last_modified_timestamp))
+    file_info.append((file_name, file_author, file_size, last_modified_timestamp, utf8_file_path))
  
     # Create a Pandas DataFrame from the file_info list
-df0 = pd.DataFrame(file_info, columns=["File Name", "Author", "Size", "File Path", "Modified Timestamp"])
+df0 = pd.DataFrame(file_info, columns=["File Name", "Author", "Size", "Modified Timestamp", "File Path"])
 #Defining timestamp column as datetime64[ns] datatype
 df0["Modified Timestamp"] = pd.to_datetime(df0["Modified Timestamp"], format="%Y-%m-%d %H:%M:%S")
 
@@ -249,18 +250,52 @@ for author, group_data in grouped_data:
     formatted_sums[author] = format_size(author_sums[author])
     
 # Load the Excel file to apply the column heading changes
-    wb = openpyxl.load_workbook(updated_excel_filename)
+wb = openpyxl.load_workbook(updated_excel_filename)
 
-    # Access and modify the column heading cell in each sheet (except the first sheet)
-    for sheet_name in wb.sheetnames[1:]:
-        ws = wb[sheet_name]
-        author_name = sheet_name  
-        if author_name in formatted_sums:
-            size_sum = formatted_sums[author_name]
-            ws.cell(row=1, column=3, value=size_sum)  #  Modifying column C (C1)
+# Access and modify the column heading cell in each sheet (except the first sheet)
+for sheet_name in wb.sheetnames[1:]:
+    ws = wb[sheet_name]
+    author_name = sheet_name  
+    if author_name in formatted_sums:
+        size_sum = formatted_sums[author_name]
+        ws.cell(row=1, column=3, value=size_sum)  #  Modifying column C (C1)
 
-    # Save the modified Excel file
-    wb.save(updated_excel_filename)
+# Save the modified Excel file
+wb.save(updated_excel_filename)
+
+# Load the Excel file to apply the column heading changes
+wb = openpyxl.load_workbook(updated_excel_filename)
+
+# Iterate through all sheets in the workbook
+for sheet in wb.sheetnames:
+    ws = wb[sheet]
+    
+    for col in ws.columns:
+        max_length = 0
+        
+        for cell in col:
+            try: # Necessary to avoid error on empty cells
+                 cell_value = str(cell.value)
+                 if len(cell_value) > max_length:
+                     max_length = len(cell_value)
+                     
+            except:
+                 pass
+         
+            adjusted_width = (max_length + 2)
+            # Set the column's width
+            column_letter = openpyxl.utils.get_column_letter(col[0].column)
+            ws.column_dimensions[column_letter].width = adjusted_width
+
+
+    # Iterate through all cells in the sheet
+    for row in ws.iter_rows():
+        for cell in row:
+            # Set alignment to center for both horizontal and vertical alignment
+            cell.alignment = openpyxl.styles.Alignment(horizontal='left', vertical='center')
+        
+# Save the modified Excel file
+wb.save(updated_excel_filename)
     
 print(f"Data has been segregated by author and saved to '{updated_excel_filename}'.")
 print("Process complete")
